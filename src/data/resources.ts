@@ -19,17 +19,17 @@ export const RECURSOS: Recurso[] = [
     id: 'emergencias',
     titulo: 'Emergencias',
     descripcion:
-      'Si tu vida o la de alguien corre peligro inmediato, contacta a los servicios de emergencia de tu país.',
-    contacto: 'Número de emergencias local — por completar',
-    porCompletar: true,
+      'Si tu vida o la de alguien corre peligro inmediato, llama al servicio de emergencias. Atienden 24 h.',
+    contacto: '112 — Emergencias (España)',
+    porCompletar: false,
   },
   {
     id: 'linea-crisis',
-    titulo: 'Línea de ayuda emocional',
+    titulo: 'Línea de atención a la conducta suicida',
     descripcion:
-      'Líneas de escucha y prevención atendidas por personas capacitadas, disponibles según tu región.',
-    contacto: 'Línea de crisis regional — por completar',
-    porCompletar: true,
+      'Escucha y prevención por profesionales, de forma gratuita, confidencial y disponible las 24 horas.',
+    contacto: '024 — Línea 024 (España, gratuita y 24 h)',
+    porCompletar: false,
   },
   {
     id: 'persona-confianza',
