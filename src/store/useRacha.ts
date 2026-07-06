@@ -10,8 +10,19 @@ import { applyCompletion, currentStreak, RACHA_INICIAL, toDayKey } from './racha
 type Listener = () => void
 const listeners = new Set<Listener>()
 
+// Cached snapshot — getSnapshot must return a stable reference between
+// renders (see useRegistros for the full explanation).
+let cache: Racha | null = null
+
 function read(): Racha {
-  return readJSON<Racha>(KEYS.racha, RACHA_INICIAL)
+  if (cache === null) cache = readJSON<Racha>(KEYS.racha, RACHA_INICIAL)
+  return cache
+}
+
+function commit(next: Racha) {
+  cache = next
+  writeJSON(KEYS.racha, next)
+  emit()
 }
 
 function emit() {
@@ -26,8 +37,7 @@ function subscribe(listener: Listener): () => void {
 /** Registers today's completion and persists the new streak. */
 export function registrarDiaCompletado(): Racha {
   const next = applyCompletion(read(), toDayKey())
-  writeJSON(KEYS.racha, next)
-  emit()
+  commit(next)
   return next
 }
 

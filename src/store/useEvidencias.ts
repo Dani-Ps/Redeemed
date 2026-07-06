@@ -11,8 +11,19 @@ import { deletePhoto, savePhoto } from './photoDb'
 type Listener = () => void
 const listeners = new Set<Listener>()
 
+// Cached snapshot — getSnapshot must return a stable reference between
+// renders (see useRegistros for the full explanation).
+let cache: Evidencia[] | null = null
+
 function read(): Evidencia[] {
-  return readJSON<Evidencia[]>(KEYS.evidencias, [])
+  if (cache === null) cache = readJSON<Evidencia[]>(KEYS.evidencias, [])
+  return cache
+}
+
+function commit(next: Evidencia[]) {
+  cache = next
+  writeJSON(KEYS.evidencias, next)
+  emit()
 }
 
 function emit() {
@@ -46,8 +57,7 @@ async function add(nueva: NuevaEvidencia): Promise<Evidencia> {
     imagenId,
     fecha: new Date().toISOString(),
   }
-  writeJSON(KEYS.evidencias, [evidencia, ...read()])
-  emit()
+  commit([evidencia, ...read()])
   return evidencia
 }
 
@@ -56,11 +66,7 @@ async function remove(id: string): Promise<void> {
   if (evidencia?.imagenId) {
     await deletePhoto(evidencia.imagenId)
   }
-  writeJSON(
-    KEYS.evidencias,
-    read().filter((e) => e.id !== id),
-  )
-  emit()
+  commit(read().filter((e) => e.id !== id))
 }
 
 export function useEvidencias() {

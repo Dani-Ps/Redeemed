@@ -9,8 +9,21 @@ import { KEYS, makeId, readJSON, writeJSON } from './local'
 type Listener = () => void
 const listeners = new Set<Listener>()
 
+// Cached snapshot: useSyncExternalStore compares snapshots with Object.is,
+// so getSnapshot MUST return a stable reference between renders. We only
+// swap the reference when the data actually changes (via commit()).
+let cache: RegistroDiario[] | null = null
+
 function read(): RegistroDiario[] {
-  return readJSON<RegistroDiario[]>(KEYS.registros, [])
+  if (cache === null) cache = readJSON<RegistroDiario[]>(KEYS.registros, [])
+  return cache
+}
+
+/** Persist a new value, refresh the cached snapshot and notify subscribers. */
+function commit(next: RegistroDiario[]) {
+  cache = next
+  writeJSON(KEYS.registros, next)
+  emit()
 }
 
 function emit() {
@@ -40,9 +53,7 @@ export function addRegistro(
     versiculoId: data.versiculoId,
     accionId: data.accionId,
   }
-  const next = [registro, ...read()]
-  writeJSON(KEYS.registros, next)
-  emit()
+  commit([registro, ...read()])
   return registro
 }
 
@@ -51,11 +62,7 @@ export function getRegistros(): RegistroDiario[] {
 }
 
 export function removeRegistro(id: string): void {
-  writeJSON(
-    KEYS.registros,
-    read().filter((r) => r.id !== id),
-  )
-  emit()
+  commit(read().filter((r) => r.id !== id))
 }
 
 export function useRegistros() {
